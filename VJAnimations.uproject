@@ -1,0 +1,43 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.4",
+	"Category": "",
+	"Description": "Unreal Engine project for VJ (Video Jockey) animations and real-time visual effects",
+	"Modules": [
+		{
+			"Name": "VJAnimations",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "DMX",
+			"Enabled": true
+		},
+		{
+			"Name": "MediaPlate",
+			"Enabled": true
+		},
+		{
+			"Name": "Media",
+			"Enabled": true
+		},
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		},
+		{
+			"Name": "OSC",
+			"Enabled": true
+		}
+	],
+	"TargetPlatforms": [
+		"Windows",
+		"Linux",
+		"Mac"
+	]
+}
