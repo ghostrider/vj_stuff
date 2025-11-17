@@ -49,6 +49,18 @@
 		{
 			"Name": "Synthesis",
 			"Enabled": true
+		},
+		{
+			"Name": "MediaIOFramework",
+			"Enabled": true
+		},
+		{
+			"Name": "WebMMedia",
+			"Enabled": true
+		},
+		{
+			"Name": "WmfMedia",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

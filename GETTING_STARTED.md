@@ -61,6 +61,43 @@ This guide will help you get up and running with the VJ Animations project.
 3. Use Media Player actors
 4. Apply real-time effects via materials
 
+### USB Camera Capture (NEW!)
+
+Capture live video from webcams or USB capture devices:
+
+1. **Add Camera Actor to Level**:
+   - Place Actors → All Classes → VJCameraCapture
+   - Drag into your scene
+
+2. **Configure Camera**:
+   - Select the actor
+   - Set Camera Device Index (0 = first camera)
+   - Set Resolution (e.g., 1920x1080 or 1280x720)
+   - Set Frame Rate (30 fps recommended)
+   - Enable Auto Start
+
+3. **Create Display Material**:
+   - Content/Materials → Create Material
+   - Add Texture Sample parameter named "CameraTexture"
+   - Set Shading Model to Unlit
+   - Connect to Emissive Color
+
+4. **Setup in Blueprint**:
+   - Get VJCameraCapture actor
+   - Call GetMediaTexture()
+   - Create Dynamic Material Instance
+   - Set texture parameter to MediaTexture
+   - Apply to mesh
+
+5. **Test**:
+   - Press Play
+   - Camera should appear on your mesh
+   - Check Output Log for any errors
+
+**Detailed Guide**: See `Content/Blueprints/CameraSetup_Instructions.md`
+
+**Example Scenes**: See `Content/Blueprints/Scenes/ExampleCameraScene.md`
+
 ### OSC External Control
 
 1. Configure OSC settings in Project Settings

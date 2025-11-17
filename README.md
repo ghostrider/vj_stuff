@@ -10,6 +10,7 @@ This project provides a foundation for creating stunning real-time visual effect
 
 - Real-time rendering optimized for live performance (60 FPS target)
 - **Audio processing and analysis** for reactive visuals
+- **USB camera/video capture** with configurable devices
 - **Keyboard shortcuts** for instant scene switching (1-0 keys)
 - Support for DMX lighting control
 - OSC (Open Sound Control) integration for external control
@@ -85,6 +86,9 @@ To compile the C++ code:
 - **Audio Synesthesia**: Frequency spectrum analysis
 - **Audio Modulation**: Advanced audio processing
 - **Synthesis**: Audio synthesis capabilities
+- **Media IO Framework**: Video input/output support
+- **WebM Media**: WebM video codec support
+- **WMF Media**: Windows Media Foundation for camera capture
 
 ## Usage
 
@@ -132,6 +136,30 @@ Access these values in Blueprints to drive material parameters, particle systems
 2. Place VJSceneManager actor in your main level
 3. Add scene actors to the SceneManager's Scenes array
 4. Use keyboard shortcuts to switch between scenes during performance
+
+### USB Camera Capture
+
+Capture live video from webcams, capture cards, or other USB video devices:
+
+**Quick Setup:**
+1. Add VJCameraCapture actor to your level
+2. Configure Camera Device Index (0 = first camera, 1 = second, etc.)
+3. Set desired resolution and frame rate
+4. Create a material with Media Texture sample
+5. Apply to a mesh to display the camera feed
+
+**Platform Support:**
+- **Windows**: Automatic detection via Windows Media Foundation
+- **Linux**: V4L2 devices (`/dev/video0`, `/dev/video1`, etc.)
+- **macOS**: AVFoundation devices
+
+**Camera Configuration:**
+- Resolution: Configurable (default: 1920x1080)
+- Frame Rate: Adjustable (recommended: 24-30 fps for performance)
+- Flip options: Horizontal and vertical mirroring
+- Multiple cameras: Use multiple VJCameraCapture actors
+
+**See detailed setup guide:** `Content/Blueprints/CameraSetup_Instructions.md`
 
 ### External Control
 

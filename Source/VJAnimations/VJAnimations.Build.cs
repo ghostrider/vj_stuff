@@ -15,6 +15,8 @@ public class VJAnimations : ModuleRules
 			"InputCore",
 			"Niagara",
 			"MediaAssets",
+			"MediaIOCore",
+			"Media",
 			"AudioCapture",
 			"AudioMixer",
 			"AudioSynesthesia",
@@ -22,7 +24,9 @@ public class VJAnimations : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
-			"EnhancedInput"
+			"EnhancedInput",
+			"RenderCore",
+			"RHI"
 		});
 
 		// Uncomment if you are using Slate UI
