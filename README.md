@@ -8,12 +8,15 @@ This project provides a foundation for creating stunning real-time visual effect
 
 ## Features
 
-- Real-time rendering optimized for live performance
+- Real-time rendering optimized for live performance (60 FPS target)
+- **Audio processing and analysis** for reactive visuals
+- **Keyboard shortcuts** for instant scene switching (1-0 keys)
 - Support for DMX lighting control
 - OSC (Open Sound Control) integration for external control
 - Niagara particle systems for advanced effects
 - Media playback and processing capabilities
 - Modular blueprint system for easy customization
+- Scene management system with fade and blackout controls
 
 ## Project Structure
 
@@ -78,8 +81,30 @@ To compile the C++ code:
 - **Media Framework**: Video and audio processing
 - **Niagara**: Next-generation VFX system
 - **OSC**: Open Sound Control for external device integration
+- **Audio Capture**: Real-time audio input capture
+- **Audio Synesthesia**: Frequency spectrum analysis
+- **Audio Modulation**: Advanced audio processing
+- **Synthesis**: Audio synthesis capabilities
 
 ## Usage
+
+### Keyboard Shortcuts
+
+The VJ system includes the following keyboard shortcuts for live performance:
+
+**Scene Switching:**
+- `1-9`, `0` - Switch directly to scene 1-10
+- `,` (Comma) - Previous scene
+- `.` (Period) - Next scene
+
+**Audio Control:**
+- `A` - Toggle audio reactive mode on/off
+
+**Master Controls:**
+- `B` - Toggle blackout (instantly hide all scenes)
+- `=` (Plus/Equal) - Master fade in
+- `-` (Minus/Hyphen) - Master fade out
+- `Mouse Wheel` - Adjust audio intensity (when applicable)
 
 ### Creating Visual Effects
 
@@ -87,6 +112,26 @@ To compile the C++ code:
 2. Use Blueprint actors to create interactive visual elements
 3. Configure Niagara systems for particle effects
 4. Set up materials with dynamic parameters for real-time control
+5. Make effects audio-reactive by reading values from VJAudioAnalyzer
+
+### Audio Reactive Visuals
+
+The VJAudioAnalyzer provides real-time audio analysis:
+- **AudioAmplitude**: Overall volume level
+- **LowFrequencyEnergy**: Bass frequencies
+- **MidFrequencyEnergy**: Mid-range frequencies
+- **HighFrequencyEnergy**: Treble frequencies
+- **AudioIntensity**: Combined intensity value
+- **OnBeatDetected**: Event triggered on beat detection
+
+Access these values in Blueprints to drive material parameters, particle systems, transforms, and more.
+
+### Scene Management
+
+1. Create scene actors in `Content/Blueprints/Scenes/`
+2. Place VJSceneManager actor in your main level
+3. Add scene actors to the SceneManager's Scenes array
+4. Use keyboard shortcuts to switch between scenes during performance
 
 ### External Control
 

@@ -8,24 +8,44 @@ This guide will help you get up and running with the VJ Animations project.
    - Double-click `VJAnimations.uproject`
    - Unreal Engine will open and compile shaders on first launch (this takes time)
 
-2. **Explore the Main Stage**
-   - The default map is `MainVJStage` (will be created in Content/Maps/)
-   - This is your primary workspace for creating visual content
+2. **Set Up the Main Stage**
+   - Create a new Empty Level: File → New Level → Empty Level
+   - Save it as `MainVJStage` in Content/Maps/
+   - Add a VJSceneManager actor from Place Actors → All Classes
+   - Add a VJAudioAnalyzer actor from Place Actors → All Classes
+   - Add basic lighting (DirectionalLight, SkyLight) for visibility
 
-3. **Create Your First Effect**
-   - Navigate to Content/Blueprints
+3. **Create Your First Scene**
+   - Navigate to Content/Blueprints/Scenes
    - Right-click → Blueprint Class → Actor
-   - Name it "BP_MyFirstEffect"
-   - Add a Particle System component or Niagara System
+   - Name it "BP_Scene_Test"
+   - Add visual components (Static Mesh, Niagara System, etc.)
+   - Place the scene actor in your MainVJStage level
+   - Select the VJSceneManager and add your scene to its Scenes array
+
+4. **Test Scene Switching**
+   - Press Play (Alt+P)
+   - Use number keys 1-9, 0 to switch between scenes
+   - Press B for blackout, A to toggle audio reactive mode
 
 ## Common VJ Workflows
 
 ### Real-Time Audio Reactive Visuals
 
-1. Import audio files to Content/Audio
-2. Use Audio Spectrum analysis
-3. Drive material parameters or particle systems with audio data
-4. Test with real-time audio input
+1. Ensure VJAudioAnalyzer is in your level
+2. In your Blueprint, get a reference to the Audio Analyzer
+3. Read audio properties:
+   - AudioAmplitude - overall volume
+   - LowFrequencyEnergy - bass
+   - MidFrequencyEnergy - mids
+   - HighFrequencyEnergy - treble
+4. Use these values to drive:
+   - Material parameters (intensity, color, speed)
+   - Actor transforms (scale, rotation)
+   - Niagara particle parameters
+   - Light intensity and color
+5. Subscribe to OnBeatDetected event for beat-synced effects
+6. Toggle audio reactive mode with the `A` key during performance
 
 ### DMX Lighting Control
 
@@ -91,12 +111,23 @@ This guide will help you get up and running with the VJ Animations project.
 
 ## Keyboard Shortcuts
 
+### Editor Shortcuts
 - `Alt + P`: Play in editor
 - `Esc`: Stop playing
 - `F11`: Fullscreen
 - `Ctrl + Space`: Content Browser
 - `` ` ``: Console commands
 - `Ctrl + Shift + ,`: GPU Visualizer
+
+### VJ Performance Shortcuts (in Play mode)
+- `1-9`, `0`: Switch to scene 1-10
+- `,` (Comma): Previous scene
+- `.` (Period): Next scene
+- `A`: Toggle audio reactive mode
+- `B`: Blackout toggle
+- `=` (Plus): Master fade in
+- `-` (Minus): Master fade out
+- `Mouse Wheel`: Audio intensity control
 
 ## Next Steps
 
