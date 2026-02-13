@@ -45,3 +45,8 @@ Saved/
 *.user
 *.userosscache
 *.sln.docstates
+
+# GLSL/ISF editor backups
+*~
+*.bak
+*.swp
