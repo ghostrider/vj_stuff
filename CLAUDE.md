@@ -2,12 +2,13 @@
 
 ## Repository Structure
 
-This is a monorepo with two independent subprojects:
+This is a monorepo with three independent subprojects:
 
 ```
 vj_stuff/
 ├── vj-unreal/    # Unreal Engine 5.4 VJ system (inactive)
 ├── glic-wire/    # GLIC → Resolume Wire port (active)
+├── hololoop/     # Hololoop → Resolume Wire port (active)
 ├── CLAUDE.md
 └── README.md
 ```
@@ -52,6 +53,18 @@ Key ISF uniforms: `isf_FragNormCoord` (normalized coords), `TIME`, `RENDERSIZE`,
 
 Use `IMG_NORM_PIXEL(sampler, coord)` to sample textures (not raw `texture2D`).
 
+### hololoop/ (Active)
+Port of [Hololoop](https://github.com/wabisabit/Hololoop) to Resolume Wire as real-time GLSL video effects.
+
+- **Source format**: ISF (Interactive Shader Format) — `.fs` fragment shaders with JSON metadata header
+- **Target**: Resolume Arena/Avenue via Wire
+- **Language**: GLSL (fragment shaders)
+- **Original**: Processing (P3D) audio-reactive visual tool with 3 modes (rays, paths, pulses)
+- **Structure**:
+  - `src/` — ISF shader files (.fs)
+  - `docs/` — Documentation and analysis
+  - `presets/` — Preset configurations
+
 ## GLIC Reference
 
 Original GLIC features to port:
@@ -61,6 +74,17 @@ Original GLIC features to port:
 - Quantization, segmentation, glitch visualization
 
 Source repo: https://github.com/GlitchCodec/GLIC
+
+## Hololoop Reference
+
+Original Hololoop features ported:
+- Mode 1: Ray grid — nodes emit rays toward drawn/bright areas, with rotation and audio reactivity
+- Mode 2: Golden-ratio rectangle paths — trails of 1.618-proportioned rectangles with palette colors
+- Mode 3: Expanding pulse rings — concentric circles that expand and fade from grid points
+- Psycho mode: random color cycling, Z-depth displacement, chaotic audio-driven effects
+- 7 color palettes (Warm Sand, Coral Garden, Watermelon, Mint Noir, Autumn, Fiesta, Ocean Neon)
+
+Source repo: https://github.com/wabisabit/Hololoop
 
 ## Git Conventions
 
