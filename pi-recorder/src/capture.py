@@ -214,8 +214,11 @@ class CaptureDevice:
                                        or "MJPG" in line or "YUYV" in line):
                     if fmt_match:
                         current_fmt = fmt_match.group(1).lower()
+                        # Normalise v4l2-ctl names → ffmpeg v4l2 input_format names
                         if current_fmt == "mjpg":
                             current_fmt = "mjpeg"
+                        elif current_fmt == "yuyv":
+                            current_fmt = "yuyv422"
                         formats.setdefault(current_fmt, {})
 
                 # Resolution line: Size: Discrete 1920x1080
