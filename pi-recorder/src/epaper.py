@@ -65,11 +65,11 @@ class DisplayManager:
     def setup(self):
         """Initialise the ePaper display and fonts."""
         try:
-            from waveshare_epd import epd2in7
-            self._epd = epd2in7.EPD()
+            from waveshare_epd import epd2in7_V2
+            self._epd = epd2in7_V2.EPD()
             self._epd.init()
-            self._epd.Clear(0xFF)  # White background
-            logger.info("ePaper display initialised (264x176)")
+            self._epd.Clear()  # V2: no argument — clears to white
+            logger.info("ePaper display initialised (epd2in7_V2, 264x176)")
         except ImportError:
             logger.warning(
                 "waveshare_epd not installed — display disabled. "
@@ -102,16 +102,16 @@ class DisplayManager:
         if self._epd:
             try:
                 self._epd.init()
-                self._epd.Clear(0xFF)
+                self._epd.Clear()
                 self._epd.sleep()
             except Exception as e:
                 logger.warning("ePaper sleep failed: %s", e)
 
     def next_view(self):
-        """Cycle to the next stats view and force a full refresh."""
+        """Cycle to the next stats view and fast-refresh the display."""
         self._view = (self._view + 1) % NUM_VIEWS
         logger.info("View → %s", VIEW_NAMES[self._view])
-        self._full_refresh()
+        self._partial_refresh()  # display_Fast: ~1 s, good enough for a view switch
 
     def on_state_change(self, new_state):
         """Called by the recorder on every state transition."""
@@ -264,7 +264,14 @@ class DisplayManager:
                 draw.ellipse([cx - dot_r, y - dot_r, cx + dot_r, y + dot_r], outline=0)
 
     def _push_to_display(self, image, partial: bool = False):
-        """Send a PIL image to the physical ePaper display."""
+        """Send a PIL image to the physical ePaper display.
+
+        epd2in7_V2 refresh modes:
+          display()      — full refresh, high quality, ~6-7 s
+          display_Fast() — fast refresh, minor ghosting, ~1 s
+        Use display_Fast() for live ticks and view toggles; full only on
+        state changes where a clean render is worth the wait.
+        """
         if self._epd is None or image is None:
             # Log to console when no hardware
             self._log_to_console()
@@ -273,8 +280,7 @@ class DisplayManager:
         try:
             buf = self._epd.getbuffer(image)
             if partial:
-                # epd2in7 doesn't have a native partial update, use full
-                self._epd.display(buf)
+                self._epd.display_Fast(buf)
             else:
                 self._epd.display(buf)
         except Exception as e:
