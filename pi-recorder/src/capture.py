@@ -266,7 +266,18 @@ class CaptureDevice:
                     # card N: ..., device M
                     m = re.search(r"card\s+(\d+).*device\s+(\d+)", line, re.IGNORECASE)
                     if m:
-                        return f"hw:{m.group(1)},{m.group(2)}"
+                        card, dev = m.group(1), m.group(2)
+                        # Verify the kernel capture device node actually exists.
+                        # /dev/snd/pcmC{N}D{M}c is only present when the hardware
+                        # supports capture on that card/device combination.
+                        pcm_node = f"/dev/snd/pcmC{card}D{dev}c"
+                        if not os.path.exists(pcm_node):
+                            logger.debug(
+                                "Audio hw:%s,%s has no capture node (%s) — skipping",
+                                card, dev, pcm_node,
+                            )
+                            continue
+                        return f"hw:{card},{dev}"
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
         return None
