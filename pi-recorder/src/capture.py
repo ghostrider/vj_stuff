@@ -93,8 +93,54 @@ class CaptureDevice:
                 devices.append((dev, os.path.basename(dev)))
         return devices
 
+    def _has_capture_capability(self, device_path: str) -> bool:
+        """
+        Return True only if the device supports V4L2_CAP_VIDEO_CAPTURE.
+
+        Checks sysfs first (no external tool needed), then falls back to
+        v4l2-ctl --info. Metadata-only nodes expose bit 0x00400000
+        (V4L2_CAP_META_CAPTURE) but NOT bit 0x00000001 (V4L2_CAP_VIDEO_CAPTURE).
+        """
+        dev_name = os.path.basename(device_path)
+
+        # Primary: sysfs device capabilities (available since Linux 3.7)
+        sysfs_caps = f"/sys/class/video4linux/{dev_name}/capabilities"
+        if os.path.exists(sysfs_caps):
+            try:
+                caps = int(open(sysfs_caps).read().strip(), 16)
+                has_cap = bool(caps & 0x00000001)  # V4L2_CAP_VIDEO_CAPTURE
+                logger.debug("%s sysfs caps=0x%08x video_capture=%s", dev_name, caps, has_cap)
+                return has_cap
+            except (ValueError, OSError):
+                pass
+
+        # Fallback: v4l2-ctl --info — look for "Video Capture" in Device Caps section
+        try:
+            result = subprocess.run(
+                ["v4l2-ctl", "-d", device_path, "--info"],
+                capture_output=True, text=True, timeout=5
+            )
+            in_device_caps = False
+            for line in result.stdout.splitlines():
+                if "Device Caps" in line or "Device Capabilities" in line:
+                    in_device_caps = True
+                # "Video Capture" must appear under Device Caps, not "Metadata Capture"
+                if in_device_caps and "Video Capture" in line and "Metadata" not in line:
+                    return True
+            # v4l2-ctl ran but found no Video Capture capability
+            return False
+        except FileNotFoundError:
+            # v4l2-ctl not installed — can't verify, let the probe attempt continue
+            return True
+        except subprocess.TimeoutExpired:
+            return False
+
     def _probe(self, device_path: str) -> bool:
         """Probe a device for supported formats and pick the best one."""
+        if not self._has_capture_capability(device_path):
+            logger.debug("Skipping %s — no V4L2_CAP_VIDEO_CAPTURE", device_path)
+            return False
+
         formats = self._query_formats(device_path)
         if not formats:
             return False
@@ -168,8 +214,11 @@ class CaptureDevice:
                                        or "MJPG" in line or "YUYV" in line):
                     if fmt_match:
                         current_fmt = fmt_match.group(1).lower()
+                        # Normalise v4l2-ctl names → ffmpeg v4l2 input_format names
                         if current_fmt == "mjpg":
                             current_fmt = "mjpeg"
+                        elif current_fmt == "yuyv":
+                            current_fmt = "yuyv422"
                         formats.setdefault(current_fmt, {})
 
                 # Resolution line: Size: Discrete 1920x1080
@@ -185,10 +234,22 @@ class CaptureDevice:
                     if fps not in formats[current_fmt][current_res]:
                         formats[current_fmt][current_res].append(fps)
 
-        except (FileNotFoundError, subprocess.TimeoutExpired) as e:
-            logger.warning(f"v4l2-ctl probe failed: {e}")
-            # Return a minimal default so we can still attempt recording
+        except FileNotFoundError:
+            # v4l2-ctl not installed: use a generic fallback so recording can
+            # still be attempted on a device that passed the capability check.
+            logger.warning("v4l2-ctl not found — assuming MJPEG 1280x720@30fps")
             formats = {"mjpeg": {(1280, 720): [30]}}
+        except subprocess.TimeoutExpired:
+            logger.warning("v4l2-ctl timed out probing %s — skipping", device_path)
+            formats = {}
+
+        # Strip any format entries with no resolutions (e.g. metadata-type entries
+        # that slipped through the parser, like 'uvch' from metadata capture nodes).
+        formats = {
+            fmt: res_map
+            for fmt, res_map in formats.items()
+            if res_map and fmt in PREFERRED_FORMATS
+        }
 
         return formats
 
