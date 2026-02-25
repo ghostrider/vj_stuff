@@ -11,6 +11,7 @@ starting a fresh ffmpeg process on resume. When stop() is called with
 multiple segments, they are concatenated into a single output file.
 """
 
+import collections
 import os
 import signal
 import subprocess
@@ -87,6 +88,7 @@ class RecordingEngine:
         self._session: RecordingSession | None = None
         self._process: subprocess.Popen | None = None
         self._lock = threading.Lock()
+        self._stderr_lines: collections.deque = collections.deque(maxlen=80)
 
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -137,13 +139,23 @@ class RecordingEngine:
             session = self._session
 
             if len(session.segments) == 1:
+                seg = session.segments[0]
+                if not os.path.exists(seg):
+                    logger.error(
+                        "Segment file was never created: %s\nffmpeg output:\n%s",
+                        seg,
+                        "".join(self._stderr_lines) or "(no output captured)",
+                    )
+                    self._session = None
+                    self._set_state(RecorderState.IDLE)
+                    return None
                 # Single segment — just move it to the final path
                 final = session.output_path
                 try:
-                    os.rename(session.segments[0], final)
+                    os.rename(seg, final)
                 except OSError as e:
                     logger.error("Rename failed: %s", e)
-                    final = session.segments[0]
+                    final = seg
             else:
                 final = self._concatenate_segments(session)
 
@@ -230,6 +242,7 @@ class RecordingEngine:
         )
 
         logger.debug("ffmpeg cmd: %s", " ".join(cmd))
+        self._stderr_lines.clear()
         try:
             self._process = subprocess.Popen(
                 cmd,
@@ -244,15 +257,35 @@ class RecordingEngine:
             logger.error("Failed to launch ffmpeg: %s", e)
             return False
 
+        # Drain stderr in a background thread to prevent the 64 KB pipe buffer
+        # from filling up and blocking ffmpeg mid-recording.
+        threading.Thread(
+            target=self._drain_stderr,
+            args=(self._process, self._stderr_lines),
+            daemon=True,
+        ).start()
+
         # Give ffmpeg a moment to fail fast (e.g. device not found)
         time.sleep(0.3)
         if self._process.poll() is not None:
-            _, stderr = self._process.communicate()
-            logger.error("ffmpeg exited immediately:\n%s", stderr.decode(errors="replace"))
+            time.sleep(0.1)  # let drain thread collect remaining lines
+            logger.error(
+                "ffmpeg exited immediately:\n%s",
+                "".join(self._stderr_lines),
+            )
             self._process = None
             return False
 
         return True
+
+    @staticmethod
+    def _drain_stderr(proc: subprocess.Popen, lines: collections.deque) -> None:
+        """Read ffmpeg stderr continuously so the pipe buffer never fills up."""
+        try:
+            for raw in proc.stderr:
+                lines.append(raw.decode(errors="replace"))
+        except Exception:
+            pass
 
     def _stop_ffmpeg(self):
         """Gracefully stop the running ffmpeg process."""
