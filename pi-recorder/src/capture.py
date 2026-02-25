@@ -263,21 +263,28 @@ class CaptureDevice:
             for line in result.stdout.splitlines():
                 lower = line.lower()
                 if any(kw in lower for kw in ["hdmi", "capture", "usb audio"]):
-                    # card N: ..., device M
-                    m = re.search(r"card\s+(\d+).*device\s+(\d+)", line, re.IGNORECASE)
+                    # arecord -l line format:
+                    #   card N: SHORTNAME [Long Name], device M: ...
+                    m = re.search(
+                        r"card\s+(\d+):\s+(\S+).*device\s+(\d+)",
+                        line, re.IGNORECASE,
+                    )
                     if m:
-                        card, dev = m.group(1), m.group(2)
-                        # Verify the kernel capture device node actually exists.
-                        # /dev/snd/pcmC{N}D{M}c is only present when the hardware
-                        # supports capture on that card/device combination.
-                        pcm_node = f"/dev/snd/pcmC{card}D{dev}c"
+                        card_num, card_name, dev = m.group(1), m.group(2), m.group(3)
+                        # Verify the kernel capture PCM node exists.
+                        pcm_node = f"/dev/snd/pcmC{card_num}D{dev}c"
                         if not os.path.exists(pcm_node):
                             logger.debug(
                                 "Audio hw:%s,%s has no capture node (%s) — skipping",
-                                card, dev, pcm_node,
+                                card_num, dev, pcm_node,
                             )
                             continue
-                        return f"hw:{card},{dev}"
+                        # Use the persistent card name rather than the numerical
+                        # index; ALSA card indices can change across reboots or
+                        # reconnections, causing "Cannot get card index for N".
+                        device_str = f"hw:{card_name},{dev}"
+                        logger.debug("Found audio device: %s (card %s)", device_str, card_num)
+                        return device_str
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
         return None
